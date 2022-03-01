@@ -1,0 +1,28 @@
+dist: trusty
+jdk: oraclejdk8
+language: java
+services:
+  - postgresql
+  - docker
+env:
+  global:
+    - secure: "F0m2GFunWS2RrMWTfvPV0dIkxlzslh6i6XsLpTteEd6Kk3ElF7VjFZzzsGgVzODGjuLTb9mgoFdDMRCM5TipCpQTEX4Fu651W7S0HlwuDlwQKEvZqU81R85zMnCOPFOdrBaElDwiQfD3jcDikCRWYD0N8to+sqAGk6AjyMMJXebHyvPXEzrn/KV16lY1zz3vAbLgD3mN0od/7PQ/MZrOLWclu3HKovX51IZYW1TiF1TdePc4mn67BhUjjcDbrk2ZgaeQuWZCOX2j4SxysQtVSbroCVjrYuYBJvr0Fy3Coee2FLbmsYuM1oQ7dGYiNBYDV38hdXN2HKUtwk8FrMYdUoPfgONwEtpDs1T/JYNGu9uwdkReBW+jnii+tw26YJjv+2VewsgjY0p6ewg9x9Lf+WQuQHUn3BR7LlO095KQovyq+fvKZ8Ua1itfSGUdswdp0DmjXCzcALG3gdT1QskOdTgmjVr491G3PrPiEeo16/Mohzr9ZZ/PbdroyjXijPYhW4EMv1ZNe1pY0M6/LN1aXGvx+/XRpsur3D2QN5KFmkD9T0pVmNrMzPHcxlc/6/CtkFkf3oMdjEYIC079ojZpaxHA5/jiyLkx5blzWLsGVFErH0JSuJ396Yyferx3pJng/1JlhQlrPHdJBHZf3nL0tEZqQ0ghgOL1h2pEVHtdUuE="
+    - secure: "nY3Pb3DX1AQxvCF0al+pmVwvAuoNmZXFGgOjeinEVs5c8yiRsxW/ERd1oiLqXAFRMU6VSLvHnFRr6F4kJf/6Z4DLnig9n7YiVE6brbvrfQ26K3meLvO2yzN/NOObneW/qhS9f82wM02AzW35xM4Aa6dIpWsFrtjZ2wt64FhDAYlbjoN+mf+OE3au8DLtNVSMFSFYXOpA2p9dog/e6fhZnH9AsshfKZI0xKR80kFeLW2JIlfQUdbMJXb7+Xdi6gVAu1mtjjEVFa+z0ShI4+NjYKOGqKed5/qna6FjgRg9iLZGwENZDhbcvUrhkATOg1dAWvR124L+nGbuUYS8GnPU0YoALsca+6aheQYVdIqtmmHHQXmJhpsNkM0XRr6WHCOq+hxp1ulPnU19Zgt+8fKT824SQAyYDbVAAC5LPS2RK9VjexpLeuPpcgg/trVN1yb4eyeSPffhM6FDH4p6bipzTCFK+2vnWe9ioJyhWg706U5Nzsr8bujdNFYB+9YNdiaTP2r1wLMZuNffMJxr+LwqtOgFIHuyrd4t3qo+EwbwvveO2B7Ly92OOA3S2Y+VU1Lsrv0mzxASWKVNaXjLRDZh+fz9LGT6FcZrYbaNcR0GU/OaNnCYNIsDhFKitrCv/1jx59iCHfP2pjo+9cv1pG1KJvrodHH00XjSptBBxxoEjVU="
+    - secure: "WFt5PadpLxcqqJFHOwWpjLYO2kHyUTTCtWure9hj2HAxWajnv3azCdD0m6IVEPbhNMGl4eXQBzhFgifzHyWyMPOABPh2Q69SdlVr3ZEVx+hq1NNmWhM7z4xIvfPEwEQvscHauYEn38SstSfbXNPFfomwBtA2nUMcJ5jLBd3XjwVN4ur1VmEk7nKgYQPPiAFuZPcVjijl9vC3Vscil/qcum/jTh0u+DPL/MiEtek1P/9VOYULppngqcSQEGzXyB2UYZYKQTcCtXlAZJddfVVF7DJ43es6ggw8Q5SyX9GPcpWZINHrFJwH/ikH0e623YYfUKD8cvy37eSjlqg9tE79xmEPFEi5il9XXz4IRD7uVaVyibAqvSX1lPlaAcmDXN0GkIb8Z6n4kmuCHIZqQXzztbhWeB2gAnT3psV0gCUW13a9O+p1WoTNQJ4w/qSzDvUpNmEAD9RWO1t2+Oo9qR69fGPuE/iZCeugVr9QBYLUIX0q/5E7sQV+Kl4ZFGTTVWU6xmzPW2Q+b4zeGhWl5JyIMBcH7Ke6aQ8p0lnXtKzhcGS9K8AvoutNRWz/kIDSiEYzbOqEalrNI7RkAKqd6pOlh4N4owrrxOzng7SqBBeNGCeAzqoB3puE1eiqR/rz7cZEkZ6R9nNU6yCncSC42WEV0v/10ndMEBxHQlizEDFR7Gw="
+    - COMMIT=${TRAVIS_COMMIT::7}
+
+script:
+  - ./mvnw clean install -B
+
+after_success:
+  - docker login -u $DOCKER_USER -p $DOCKER_PASS
+  - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo "$TRAVIS_BRANCH"; fi`
+  - export IMAGE_NAME=myapi/my-docker-repo
+  - docker build -t $IMAGE_NAME:latest .
+  - docker tag $IMAGE_NAME:latest $IMAGE_NAME:$TAG
+  - docker push $IMAGE_NAME:$TAG
+
+deploy:
+  provider: heroku
+  api_key: $HEROKU_API_KEY
+  app: user-api-test-v2
